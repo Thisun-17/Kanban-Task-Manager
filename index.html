@@ -9,24 +9,41 @@
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
 <body>
-    <!-- This is where our Alpine.js app will live -->
-    <div x-data="kanbanBoard()">
+    <div x-data="kanbanBoard()" class="container">
         <h1>My Kanban Board</h1>
         
-        <!-- This will show the number of tasks -->
+        <!-- Add Task Button -->
+        <button @click="showForm = true" x-show="!showForm">
+            + Add Task
+        </button>
+        
+        <!-- Add Task Form -->
+        <div x-show="showForm" class="form">
+            <input 
+                type="text" 
+                x-model="newTaskTitle" 
+                placeholder="Enter task title"
+                @keyup.enter="addTask()"
+            >
+            <button @click="addTask()">Save</button>
+            <button @click="showForm = false">Cancel</button>
+        </div>
+        
+        <!-- Task Counter -->
         <p>Total tasks: <span x-text="tasks.length"></span></p>
         
-        <!-- This will list all tasks -->
-        <div>
+        <!-- Tasks List -->
+        <div class="tasks">
             <template x-for="task in tasks" :key="task.id">
-                <div>
+                <div class="task-card">
                     <h3 x-text="task.title"></h3>
+                    <p>Column: <span x-text="task.column"></span></p>
+                    <button @click="deleteTask(task.id)">Delete</button>
                 </div>
             </template>
         </div>
     </div>
 
-    <!-- Load our JavaScript file -->
     <script src="js/app.js"></script>
 </body>
 </html>
