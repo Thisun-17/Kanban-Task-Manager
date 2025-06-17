@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kanban Task Manager</title>
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Alpine.js CDN - this loads Alpine.js from the internet -->
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body>
+    <!-- This is where our Alpine.js app will live -->
+    <div x-data="kanbanBoard()">
+        <h1>My Kanban Board</h1>
+        
+        <!-- This will show the number of tasks -->
+        <p>Total tasks: <span x-text="tasks.length"></span></p>
+        
+        <!-- This will list all tasks -->
+        <div>
+            <template x-for="task in tasks" :key="task.id">
+                <div>
+                    <h3 x-text="task.title"></h3>
+                </div>
+            </template>
+        </div>
+    </div>
+
+    <!-- Load our JavaScript file -->
+    <script src="js/app.js"></script>
+</body>
+</html>
