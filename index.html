@@ -5,43 +5,113 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kanban Task Manager</title>
     <link rel="stylesheet" href="css/style.css">
-    <!-- Alpine.js CDN - this loads Alpine.js from the internet -->
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 </head>
 <body>
-    <div x-data="kanbanBoard()" class="container">
-        <h1>My Kanban Board</h1>
-        
-        <!-- Add Task Button -->
-        <button @click="showForm = true" x-show="!showForm">
-            + Add Task
-        </button>
-        
-        <!-- Add Task Form -->
-        <div x-show="showForm" class="form">
-            <input 
-                type="text" 
-                x-model="newTaskTitle" 
-                placeholder="Enter task title"
-                @keyup.enter="addTask()"
-            >
-            <button @click="addTask()">Save</button>
-            <button @click="showForm = false">Cancel</button>
-        </div>
-        
-        <!-- Task Counter -->
-        <p>Total tasks: <span x-text="tasks.length"></span></p>
-        
-        <!-- Tasks List -->
-        <div class="tasks">
-            <template x-for="task in tasks" :key="task.id">
-                <div class="task-card">
-                    <h3 x-text="task.title"></h3>
-                    <p>Column: <span x-text="task.column"></span></p>
-                    <button @click="deleteTask(task.id)">Delete</button>
+    <div x-data="kanbanBoard()" x-init="init()" class="kanban-container">
+        <header class="header">
+            <h1>Kanban Task Manager</h1>
+            <div class="filters">
+                <input 
+                    type="text" 
+                    x-model="searchTerm" 
+                    placeholder="Search tasks..."
+                    class="search-input"
+                >
+                <select x-model="priorityFilter" class="priority-filter">
+                    <option value="">All Priorities</option>
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                </select>
+            </div>
+        </header>
+
+        <div class="board">
+            <template x-for="column in columns" :key="column.id">
+                <div class="column">
+                    <div class="column-header">
+                        <h3 x-text="column.name"></h3>
+                        <span class="task-count" x-text="getFilteredTasks(column.id).length"></span>
+                    </div>
+                    
+                    <div 
+                        class="task-list" 
+                        :data-column-id="column.id"
+                    >
+                        <template x-for="task in getFilteredTasks(column.id)" :key="task.id">
+                            <div 
+                                class="task-card" 
+                                :class="'priority-' + task.priority"
+                                :data-task-id="task.id"
+                                @click="selectTask(task)"
+                            >
+                                <h4 x-text="task.title"></h4>
+                                <p x-text="task.description" x-show="task.description"></p>
+                                <div class="task-meta">
+                                    <span class="priority" :class="'priority-' + task.priority" x-text="task.priority"></span>
+                                    <span class="due-date" x-show="task.due_date" x-text="formatDate(task.due_date)"></span>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                    
+                    <button 
+                        class="add-task-btn" 
+                        @click="openTaskForm(column.id)"
+                    >
+                        + Add Task
+                    </button>
                 </div>
             </template>
         </div>
+
+        <!-- Task Form Modal -->
+        <div x-show="showTaskForm" class="modal-overlay" @click="closeTaskForm()">
+            <div class="modal" @click.stop>
+                <h3 x-text="editingTask ? 'Edit Task' : 'New Task'"></h3>
+                <form @submit.prevent="saveTask()">
+                    <input 
+                        type="text" 
+                        x-model="taskForm.title" 
+                        placeholder="Task title" 
+                        required 
+                        class="form-input"
+                    >
+                    <textarea 
+                        x-model="taskForm.description" 
+                        placeholder="Description" 
+                        class="form-textarea"
+                    ></textarea>
+                    <select x-model="taskForm.priority" class="form-select">
+                        <option value="low">Low Priority</option>
+                        <option value="medium">Medium Priority</option>
+                        <option value="high">High Priority</option>
+                    </select>
+                    <input 
+                        type="date" 
+                        x-model="taskForm.due_date" 
+                        class="form-input"
+                    >
+                    <div class="form-actions">
+                        <button type="submit" class="btn-primary">Save</button>
+                        <button type="button" @click="closeTaskForm()" class="btn-secondary">Cancel</button>
+                        <button 
+                            type="button" 
+                            @click="deleteTask()" 
+                            x-show="editingTask" 
+                            class="btn-danger"
+                        >
+                            Delete
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Loading indicator -->
+        <div x-show="loading" class="loading">Loading...</div>
     </div>
 
     <script src="js/app.js"></script>
